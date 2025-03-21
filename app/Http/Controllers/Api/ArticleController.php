@@ -20,7 +20,7 @@ class ArticleController extends Controller
         return response()->json($articles);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
@@ -30,17 +30,35 @@ class ArticleController extends Controller
             'image_path' => 'nullable|string',
         ]);
 
-        return Article::create($data);
+        $article = Article::create($data);
+
+        return response()->json([
+            'status' => 'success',
+            'article' => $article
+        ], 201);
     }
 
     public function show($id): JsonResponse
     {
-        $article = Article::findOrFail($id);
+        if (!is_numeric($id)) {
+            return response()->json(['error' => 'Invalid article ID'], 400);
+        }
+
+        $article = Article::find($id);
+        if (!$article) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
+
         return response()->json($article);
     }
 
-    public function update(Request $request, Article $article)
+    public function update(Request $request, $id): JsonResponse
     {
+        $article = Article::find($id);
+        if (!$article) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
+
         $data = $request->validate([
             'category_id' => 'sometimes|exists:categories,id',
             'title' => 'sometimes|string|max:255',
@@ -51,11 +69,23 @@ class ArticleController extends Controller
 
         $article->update($data);
 
-        return $article;
+        return response()->json([
+            'status' => 'success',
+            'article' => $article
+        ]);
     }
 
-    public function destroy(Article $article)
+    public function destroy($id): JsonResponse
     {
+        if (!is_numeric($id)) {
+            return response()->json(['error' => 'Invalid article ID'], 400);
+        }
+        
+        $article = Article::find($id);
+        if (!$article) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
+
         $article->delete();
         return response()->json(['message' => 'Article deleted']);
     }

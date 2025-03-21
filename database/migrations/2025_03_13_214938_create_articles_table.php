@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->timestamp('published_at')->nullable();
             $table->text('short_description');
+            $table->text('content');
             $table->unsignedBigInteger('likes')->default(0);
             $table->timestamps();
         });
